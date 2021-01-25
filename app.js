@@ -11,10 +11,9 @@ const cors = require("cors");
 const sauceRoutes = require('./routes/sauce')
 const userRoutes = require('./routes/user');
 
+require('dotenv').config();
 // Middleware
-mongoose.connect('mongodb+srv://kobe:opc6@opcprojet6.xqee8.mongodb.net/<dbname>?retryWrites=true&w=majority',
-  { useNewUrlParser: true,
-    useUnifiedTopology: true })
+mongoose.connect(process.env.DB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connexion à MongoDB réussie !'))
   .catch(() => console.log('Connexion à MongoDB échouée !'));
 
