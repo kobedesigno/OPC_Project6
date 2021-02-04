@@ -1,12 +1,14 @@
 const Sauce = require('../models/Sauce');
 const fs = require('fs');
-const app = require('../app');
 
 exports.createSauce = (req, res, next) => {
     const sauceObject = JSON.parse(req.body.sauce);
+    // On enlève le champ id du req.body car il va être généré par le frontend n'est pas le bon, il doit être geré par mangoDB
     delete sauceObject._id;
+    // Nouvelle instance du model Sauce contenant toutes les infos
     const sauce = new Sauce({
       ...sauceObject,
+      // http(s)://localhost:3000/images/nomdel'image (url dynamique)
       imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
     });
     sauce.save()
@@ -15,11 +17,11 @@ exports.createSauce = (req, res, next) => {
   };
 
 exports.modifySauce = (req, res, next) => {
-    const sauceObject = req.file ?
+    const sauceObject = req.file ? // si changement de req.file (changement d'image)
         {
             ...JSON.parse(req.body.sauce),
             imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-        } : { ...req.body };
+        } : { ...req.body }; // si pas de req.file (pas changement d'image)
     Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
         .then(() => res.status(200).json({ message: 'Objet modifié !'}))
         .catch(error => res.status(400).json({ error }));
@@ -28,8 +30,8 @@ exports.modifySauce = (req, res, next) => {
 exports.deleteSauce = (req, res, next) => {
     Sauce.findOne({ _id: req.params.id })
       .then(sauce => {
-        const filename = sauce.imageUrl.split('/images/')[1];
-        fs.unlink(`images/${filename}`, () => {
+        const filename = sauce.imageUrl.split('/images/')[1]; // récupération du nom du fichier
+        fs.unlink(`images/${filename}`, () => { // unlink = supprime le fichier
           Sauce.deleteOne({ _id: req.params.id })
             .then(() => res.status(200).json({ message: 'Objet supprimé !'}))
             .catch(error => res.status(400).json({ error }));
